@@ -1,0 +1,194 @@
+from selenium import webdriver
+import chromedriver_binary
+from selenium.webdriver.common.keys import Keys
+from time import sleep
+from bs4 import BeautifulSoup
+import  re
+import  pandas as pd
+from pandas import Series,DataFrame
+
+driver = webdriver.Chrome()
+url = 'https://suumo.jp/jj/chintai/ichiran/FR301FC005/?ar=030&bs=040&ra=013&rn=0220&cb=0.0&ct=9999999&mb=0&mt=9999999&et=9999999&cn=9999999&shkr1=03&shkr2=03&shkr3=03&shkr4=03&sngz=&po1=25&po2=99&pc=10'
+#https://suumo.jp/jj/chintai/ichiran/FR301FC005/?ar=030&bs=040&ra=013&rn=0220&cb=0.0&ct=9999999&mb=0&mt=9999999&et=9999999&cn=9999999&shkr1=03&shkr2=03&shkr3=03&shkr4=03&sngz=&po1=25&po2=99&pc=100
+driver.get(url)
+name = [] #マンション名
+rent = [] #賃料
+admin = [] #管理費
+separete = [] #管理費、敷金、礼金、保証金、その他、間取り、専有面積、向き、建物種別、築年数
+near1 = [] #最寄り駅ひとつ＋数字
+near2 = [] #最寄り駅数字だけ
+near3 = [] #最寄り駅みっつ
+moredata = [] #文字いっぱいあるやつ
+height = [] #階数
+separete_admin =[]#管理費
+separete_siki = []#敷金
+separete_reiki = []#礼金
+separete_hosyou = []#保証金
+separete_sonota = []#その他
+separete_madori = []#間取り
+separete_senyuu = []#専有面積
+separete_muki = []#方角
+separete_tatemono = []#建物種類別
+separete_tiku = []#築年数
+
+a=0
+e=0
+h=1
+for f in range(1):
+
+   for i in range(1):
+      for e in range(1):
+        driver.find_element_by_xpath("//*[@id='js-bukkenList']/div[%d]/div[%f]/div[2]/div[2]/div/div[3]/ul/li[1]/a"%(h,e+1)).click()
+        #データ取得↓↓↓
+        soup = BeautifulSoup(driver.page_source, "html5lib")
+
+        name_data = soup.find_all(class_="section_h1-header")
+        name_data=str(name_data)
+        name_data_rep = name_data.replace('[<div class="section_h1-header">','')
+        name_data_rep2 = name_data_rep.replace('<h1 class="section_h1-header-title">','')
+        name_data_rep3 = name_data_rep2.replace('</h1>','')
+        name_data_rep4 = name_data_rep3.replace('<div class="section_h1-header-action">','')
+        name_data_rep5 = name_data_rep4.replace('<a class="detail_favorite" href="" onclick="registClipSingle(this);return false;"><span class="detail_favorite-add">お気に入りに追加する</span></a>','')
+        name_data_rep6 = name_data_rep5.replace('</div>','')
+        name_data_rep7 = name_data_rep6.replace(']','')
+
+
+        rent_data = soup.find_all(class_="property_view_main-emphasis")
+        rent_data = str(rent_data)
+        rent_data_rep = rent_data.replace('[<div class="property_view_main-emphasis">','')
+        rent_data_rep2 = rent_data_rep.replace('</div>]','')
+
+
+        admin_data = soup.find_all(class_="property_data property_data--main")
+        admin_data = str(admin_data)
+        admin_data_rep = admin_data.replace('[<div class="property_data property_data--main">','')
+        admin_data_rep2 = admin_data_rep.replace('<div class="property_data-title">管理費・共益費</div>','')
+        admin_data_rep3 = admin_data_rep2.replace('<div class="property_data-body">','')
+        admin_data_rep4 = admin_data_rep3.replace('</div>','')
+        admin_data_rep5 = admin_data_rep4.replace(']','')
+
+
+        #いっぱいあるデータ
+        siki_data = soup.find_all(class_="property_data-body")
+        siki_data = str(siki_data)
+        siki_data_rep = siki_data.replace('[<div class="property_data-body">','' )
+        siki_data_rep2 = siki_data_rep.replace('</div>','' )
+        siki_data_rep3 = siki_data_rep2.replace('<span>','' )
+        siki_data_rep4 = siki_data_rep3.replace('</span>','' )
+        siki_data_rep5 = siki_data_rep4.replace('<sup>','')
+        siki_data_rep6 = siki_data_rep5.replace('</sup>','')
+        siki_data_rep7 = siki_data_rep6.replace(']','')
+        siki_data_rep8 = siki_data_rep7.replace('</div>]','')
+        siki_data_rep9 = siki_data_rep8.replace('<div class="property_data-body">','')
+        siki_data_rep10 = siki_data_rep9.replace('\t','')
+        siki_data_rep11 = siki_data_rep10.replace('\n','')
+        siki_data_rep12 = siki_data_rep11.replace('-','0')
+        separete_data=re.split('[/,]',siki_data_rep12)
+
+
+
+        nearstation_data_first = soup.find(class_="property_view_detail-text")
+        nearstation_data_first = str(nearstation_data_first)
+        nearstation_data_rep = nearstation_data_first.replace('<div class="property_view_detail-text">','')
+        nearstation_data_rep2 = nearstation_data_rep.replace('</div>]','')
+        nearstation_data_rep3 = nearstation_data_rep2.replace('</div>','')
+
+
+        num = re.sub("\\D", "",nearstation_data_rep3)
+
+
+        nearstation_data = soup.find_all(class_="property_view_detail-text")
+        nearstation_data = str(nearstation_data)
+        nearstation_data_rep = nearstation_data.replace('[<div class="property_view_detail-text">','</div>, <div class="property_view_detail-text">')
+        nearstation_data_rep2 = nearstation_data_rep.replace('</div>]','')
+        nearstation_data_rep3 = nearstation_data_rep2.replace('</div>, <div class="property_view_detail-text">','')
+        nearstation_data_rep4 = nearstation_data_rep3.replace('東急東横線/','')
+        nearstation_data_rep5_second = nearstation_data_rep4.replace('JR山手線/','')
+
+
+        more_data = soup.find(class_="bgc-wht ol-g")
+        more_data = str(more_data)
+        more_data_rep = more_data.replace('<div class="bgc-wht ol-g">','')#もっと簡単にできるはず
+        more_data_rep2= more_data_rep.replace('<ul class="inline_list">','')
+        more_data_rep3 = more_data_rep2.replace('<li>','')
+        more_data_rep4 = more_data_rep3.replace('</div>','')
+        more_data_rep5 = more_data_rep4.replace('</ul>','')
+        more_data_rep6 = more_data_rep5.replace('</li>','')
+
+
+
+        height_data = soup.find_all(text=re.compile("階建"))
+        height_data = str(height_data)
+        height_data = re.sub(r"\W", "", height_data)
+        height_data = re.sub(r"階建","",height_data)
+        height_data_rep = height_data[-3]
+
+
+
+
+        name.append(name_data_rep7) #建物名
+        rent.append(rent_data_rep2) #家賃
+        admin.append(admin_data_rep5) #管理費
+        separete.append(separete_data)#管理費、敷金、礼金、保証金、その他、間取り、専有面積、向き、建物種別、築年数
+        near1.append(nearstation_data_rep3)#最寄り駅ひとつ＋数字
+        near2.append(num)#最寄り駅数字のみ
+        near3.append(nearstation_data_rep5_second)#最寄り三駅
+        moredata.append(more_data_rep6) #文字いっぱいのデータ
+        height.append(height_data_rep) #何階か
+
+        print(num)
+        print(more_data_rep6)
+        print(separete_data)
+        separete_admin.append(separete_data[0])
+        separete_siki.append(separete_data[1])
+        separete_reiki.append(separete_data[2])
+        separete_hosyou.append(separete_data[3])
+        separete_sonota.append(separete_data[4])
+        separete_madori.append(separete_data[5])
+        separete_senyuu.append(separete_data[6])
+        separete_muki.append(separete_data[7])
+        separete_tatemono.append(separete_data[8])
+        separete_tiku.append(separete_data[9])
+
+      else:
+          h += 2
+
+   else:
+        if a == 0:
+            driver.find_element_by_xpath('//*[@id="js-leftColumnForm"]/div[11]/div[2]/p/a').click()
+            a += 1
+            h = 1
+        else:
+            driver.find_element_by_xpath('//*[@id="js-leftColumnForm"]/div[11]/div[2]/p[2]/a').click()
+            h = 1
+
+name = Series(name)
+rent =Series(rent)
+admin = Series(admin)
+near1 = Series(near1)
+near2 = Series(near2)
+near3 = Series(near3)
+moredata = Series(moredata)
+height = Series(height)
+separete_admin = Series(separete_admin)
+separete_siki =Series(separete_siki)
+separete_reiki = Series(separete_reiki)
+separete_hosyou = Series(separete_hosyou)
+separete_sonota = Series(separete_sonota)
+separete_madori = Series(separete_madori)
+separete_senyuu = Series(separete_senyuu)
+separete_muki = Series(separete_muki)
+separete_tatemono = Series(separete_tatemono)
+separete_tiku = Series(separete_tiku)
+
+suumo_sotu = pd.concat([name,rent,admin,near1,near2,near3,moredata,height,separete_admin,separete_siki,separete_reiki,separete_hosyou,separete_sonota,separete_madori,separete_senyuu,separete_muki,separete_tatemono,separete_tiku])
+
+suumo_sotu.columns = ['マンション名','賃料','管理費','最寄り駅','最寄り駅数字','最寄り駅3つ','複数データ','階数','管理費2','敷金','礼金','保証金','その他','間取り','専有面積','方角','建物種類','築年数']
+suumo_sotu.to_csv('suumo_sotu_test.csv')
+df = pd.read_csv('suumo_sotu_test.csv')
+print(df)
+
+
+
+
+print("終了")
